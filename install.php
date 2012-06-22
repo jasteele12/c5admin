@@ -13,7 +13,7 @@ define('TARGET_FOLDER', '/var/www/'); # don't forget trailing slash
 if (!$_POST) {
     // Modify $core_array depending on your configuration
     $core_array = array (
-        '/home/me/c5core/concrete5.5.2.1/concrete' => 'concrete 5.5.2.1'
+        '/home/me/c5core/concrete5.5.2.1' => 'concrete 5.5.2.1'
     );
 ?>
 <!DOCTYPE html>

@@ -8,12 +8,10 @@
 * file that was distributed with this source code.
 */
 
+define('TARGET_FOLDER', '/var/www/'); # don't forget trailing slash
+
 if (!$_POST) {
-    // Modify $target_array and $core_array depending on your configuration
-    $target_array = array (
-        '/var/www/site1' => 'my website number 1',
-        '/var/www/site2' => 'my website number 2'
-    );
+    // Modify $core_array depending on your configuration
     $core_array = array (
         '/home/me/c5core/concrete5.5.2.1/concrete' => 'concrete 5.5.2.1'
     );
@@ -55,15 +53,16 @@ if (!$_POST) {
                 <ul>
                     <!--<li>starting point : <input type="text" name="starting_point" /><div class="info">the handle for the sample content starting point you wish to use. Optional. If none specified then "blank" will be used.</div></li>-->
                     <li>
-                        <label for="target">Target :</label> 
+                        <!--<label for="target">Target :</label> 
                         <select name="target" id="target">
                         <?php 
-                        foreach ($target_array as $path => $name) {
-                            echo '<option value="'.$path.'">'.$name.'</option>';
-                        }
+                        //foreach ($target_array as $path => $name) {
+                        //    echo '<option value="'.$path.'">'.$name.'</option>';
+                        //}
                         ?>
-                        </select>
-                        <div class="info">A path to where you want concrete5 installed. Optional. If omitted the current directory will be assumed.</div>
+                        </select>-->
+                        <label for="folder">Folder :</label> <input required type="text" name="folder" id="folder" />
+                        <div class="info">Name of your website folder. The script will create the folder in <?=TARGET_FOLDER?>.</div>
                     </li>
                     <li><label for="site">Sitename :</label> <input type="text" name="site" id="site" value="my new concrete5 website" /></li>
                     <li>
@@ -92,7 +91,7 @@ else {
      * Render unto Caesar that which is Caesar's,
      * the majority of lines below are from Andrew Embler
      * http://andrewembler.com/posts/installing-concrete5-from-the-command-line/
-     */ 
+     */
 
     define('FILE_PERMISSIONS_MODE', 0777);
     define('APP_VERSION_CLI_MINIMUM', '5.5..1');
@@ -108,8 +107,8 @@ else {
     $DB_DATABASE = $_POST['db_database'];
     $INSTALL_ADMIN_PASSWORD = $_POST['admin_password'];
     $INSTALL_ADMIN_EMAIL = $_POST['admin_email'];
-    $INSTALL_STARTING_POINT = $_POST['starting_point'];
-    $target = $_POST['target'];
+    //$INSTALL_STARTING_POINT = $_POST['starting_point'];
+    $target = TARGET_FOLDER . $_POST['folder'] . '/';
     $site = $_POST['site'];
     $core = $_POST['core'];
 
@@ -127,16 +126,40 @@ else {
         define('DIR_BASE', dirname(__FILE__));
     }
 
-    if ($core) {
-        if (substr($core, 0, 1) == '/') {
-            $corePath = $core;	
-        } else {
-            $corePath = dirname(__FILE__) . '/' . $core;
-        }
-    } else {
-        $corePath = DIR_BASE . '/concrete';
+    # Create the website folder
+    if (!mkdir($target, 0755)) {
+        die("ERROR: can't create ".$_POST['folder'].". This folder may exist or you don't have rights to create it.\n");
     }
-
+    
+    $corePath = $core . '/concrete';
+    
+    # Copy the concrete5 structure
+    # FIXME This part is not quite good : folders depend on concrete5 version
+    $toCreate = array (
+        'blocks', 'config', 'controllers', 'css', 'elements', 'files', 
+        'helpers', 'jobs', 'js', 'languages', 'libraries', 'mail', 'models',
+        'packages', 'page_types', 'single_pages', 'themes', 'tools', 'updates'
+    );
+    foreach ($toCreate as $dir) {
+        if (!mkdir($target . $dir, 0755)) {
+            die("ERROR: Error creating ".$dir.".\n");
+        }
+    }
+    
+    $toCopy = array (
+        'index.php', 'robots.txt'
+    );
+    foreach ($toCopy as $file) {
+        if (!copy($core . '/' . $file, $target . $file)) {
+            die("ERROR: Error copying ".$file.".\n");
+        }
+    }
+    
+    # chmod
+    chmod($target . "files", 0777);
+    chmod($target . "config", 0777);
+    chmod($target . "packages", 0777);
+    
     if (!file_exists($corePath . '/config/version.php')) {
         die("ERROR: Invalid concrete5 core.\n");
     } else {
@@ -284,7 +307,7 @@ else {
 
         try {
             foreach($routines as $r) {
-                print $r->getProgress() . '%: ' . $r->getText() . "\n";
+                //print $r->getProgress() . '%: ' . $r->getText() . "\n";
                 call_user_func(array($spl, $r->getMethod()));
             }
         } catch(Exception $ex) {

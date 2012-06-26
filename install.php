@@ -8,12 +8,12 @@
 * file that was distributed with this source code.
 */
 
-define('TARGET_FOLDER', '/var/www/'); # don't forget trailing slash
+define('TARGET_FOLDER', '/home/coteo/www/websites/'); # don't forget trailing slash
 
 if (!$_POST) {
     // Modify $core_array depending on your configuration
     $core_array = array (
-        '/home/me/c5core/concrete5.5.2.1' => 'concrete 5.5.2.1'
+        '/home/coteo/c5core/concrete5.5.2.1' => 'concrete 5.5.2.1'
     );
 ?>
 <!DOCTYPE html>
